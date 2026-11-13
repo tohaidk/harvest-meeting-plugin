@@ -7,6 +7,9 @@ Your AI agent joins Google Meet as a signed-in bot that hears, speaks (EN/RU), c
 /plugin install harvest-meeting@harvest
 ```
 
+Get a key (self-serve): sign in at https://tryharvest.ai with Google, open **Developers**
+(https://tryharvest.ai/developers), create an agent and copy its key (`hvst_live_...`, shown once).
+
 Put your key in `~/.harvest/config.json` as `{"api_key": "hvst_live_..."}` (or `HARVEST_API_KEY`), then ask
 your agent: "join https://meet.google.com/abc-defg-hij".
 
