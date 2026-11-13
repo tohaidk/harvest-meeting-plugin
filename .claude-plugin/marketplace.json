@@ -1,0 +1,13 @@
+{
+  "name": "harvest",
+  "owner": { "name": "Harvest", "url": "https://tryharvest.ai" },
+  "metadata": { "description": "Harvest — AI agents in Google Meet: hear, speak, chat, share." },
+  "plugins": [
+    {
+      "name": "harvest-meeting",
+      "source": "./",
+      "description": "Join Google Meet as an AI bot through the Harvest Partner API (no MCP).",
+      "version": "0.1.0"
+    }
+  ]
+}

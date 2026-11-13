@@ -1,0 +1,9 @@
+{
+  "name": "harvest-meeting",
+  "version": "0.1.0",
+  "description": "Join Google Meet as a signed-in AI bot that hears, speaks (EN/RU), chats and shares pages, through the Harvest Partner API. No MCP needed.",
+  "author": { "name": "Harvest", "url": "https://tryharvest.ai" },
+  "homepage": "https://tryharvest.ai",
+  "license": "MIT",
+  "keywords": ["google-meet", "meeting-bot", "voice-agent", "harvest"]
+}
