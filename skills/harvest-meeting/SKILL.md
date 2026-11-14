@@ -4,7 +4,7 @@ description: >
   Harvest (tryharvest.ai) — join a Google Meet as a signed-in AI bot that hears, speaks
   (EN/RU, ~0.7 s), chats, raises a hand, shares a web page and reacts to participants.
   Use when asked to join a call, attend a meeting, or talk to people in a meeting.
-argument-hint: <meet-url>
+argument-hint: <meet-url> [--name N] [--voice V] [--voice-strategy direct|realtime] [--context T]
 license: MIT
 ---
 
@@ -24,44 +24,59 @@ If neither exists, ask the user for their Harvest key once and save it to that f
 ```bash
 EVENTS="$PWD/meeting-events.jsonl"; COMMANDS="$PWD/meeting-commands.jsonl"
 : > "$EVENTS"; : > "$COMMANDS"
-node "${CLAUDE_PLUGIN_ROOT}/scripts/harvest-bridge.mjs" "<meet-url>" \
-  --events "$EVENTS" --commands "$COMMANDS" &        # run in background
+node "${CLAUDE_PLUGIN_ROOT}/scripts/harvest-bridge.mjs" "<meet-url>"   --name "Sam" --voice marin --language en --context "Weekly sync, pilot budget"   --output "$EVENTS" --commands "$COMMANDS" &        # run in background
 ```
+
+Options: `--name`, `--voice` (alloy ash ballad coral echo fable nova onyx sage shimmer verse marin cedar;
+hear them at https://gateway.tryharvest.ai/v1/voices), `--voice-strategy direct|realtime`, `--context`,
+`--trigger-words a,b`, `--language en|ru|…`, `--webpage-url URL` (page as the bot camera),
+`--max-duration MIN`, `--alone-timeout SEC`, `--vad-timeout SEC` (default 1.25).
 
 Then watch events with your streaming primitive (Claude Code: Monitor, persistent):
 
 ```bash
-tail -n 0 -f "$EVENTS" | grep --line-buffered -E '"event":"(call\.[a-z_]+|transcript\.final|meeting\.(participant_joined|participant_left|chat_message)|result|session\.ended|command\.error|stream\.error)"'
+tail -n 0 -f "$EVENTS" | grep --line-buffered -E '"event":"(call\.[a-z_]+|user\.message|greeting\.prompt|agent\.request|participant\.(joined|left)|chat\.received|command\.error|stream\.error)"'
 ```
 
 `--line-buffered` is required. Joining takes 60–120 s. If you see `call.bot_waiting_room`,
 tell the user to admit the bot from the lobby.
 
+## Strategies
+
+- `direct` (default): you decide what to say. React to `user.message`, answer with `tts.speak`.
+- `realtime`: the bot talks by itself and sends you `agent.request` for anything it cannot answer.
+  Reply with `{"command":"inject.natural","request_id":"…","revision":N,"text":"…"}`; send
+  `"final":false` first for a status update if it takes a while.
+
 ## Talk (append one JSON line to the commands file)
 
 ```bash
-echo '{"type":"speak","text":"Hi, I am here."}' >> "$COMMANDS"
-echo '{"type":"chat","text":"https://example.com/notes"}' >> "$COMMANDS"
-echo '{"type":"raise-hand"}' >> "$COMMANDS"
-echo '{"type":"share-url","url":"https://example.com/slides"}' >> "$COMMANDS"
-echo '{"type":"leave"}' >> "$COMMANDS"
+echo '{"command":"tts.speak","text":"Hi, I am here."}' >> "$COMMANDS"
+echo '{"command":"send_chat","text":"https://example.com/notes"}' >> "$COMMANDS"
+echo '{"command":"raise_hand"}' >> "$COMMANDS"
+echo '{"command":"screenshare.start","url":"https://example.com/slides"}' >> "$COMMANDS"
+echo '{"command":"leave"}' >> "$COMMANDS"
 ```
 
-All commands: `speak` (`text`), `chat` (`text`), `raise-hand`, `lower-hand`, `reaction` (`emoji`),
-`interrupt`, `participants`, `screenshot`, `share-url` (`url`), `stop-share`, `mute`, `unmute`,
-`admit-waiting`, `leave`. Each gets a `result` event.
+Commands (AgentCall or Harvest names): `tts.speak`/`speak` (`text`), `send_chat`/`chat`, `raise_hand`,
+`lower-hand`, `reaction` (`emoji`), `interrupt`/`audio.clear`, `participants`, `screenshot.take`,
+`screenshare.start|swap|stop`, `camera-page` (`url` or `null`), `tasks.set` (`tasks`), `set_state`
+(`state`), `mic` (`action`: on|off|toggle), `inject.natural`, `admit-waiting`, `leave`.
+Each gets `command.ack` or `command.error`.
 
 ## Events you get
 
 | event | meaning |
 |---|---|
-| `call.created` → `call.spawning` → `call.joining` → `call.bot_waiting_room` → `call.admitted` → `call.active` → `call.bot_ready` | join lifecycle |
-| `transcript.final` | a person finished a sentence: `text`, `speaker`, `is_self` |
-| `meeting.participant_joined` / `meeting.participant_left` | who is there |
-| `meeting.chat_message` | someone wrote in chat |
-| `meeting.active_speaker` | who is talking (`null` = silence) |
-| `result` | outcome of your command |
-| `session.ended`, `call.ended` | the bot left; stop watching |
+| `call.created` → `call.joining` → `call.bot_waiting_room` → `call.active` → `call.bot_ready` | join lifecycle |
+| `user.message` | a person finished a turn (finals merged): `text`, `speaker` — react to this |
+| `transcript.final` | each final sentence (`is_self: true` is your own voice) |
+| `greeting.prompt` | the first person joined; greet once if it fits |
+| `participant.joined` / `participant.left` | who is there |
+| `chat.received` | someone wrote in chat |
+| `agent.request` | realtime: the bot needs you (`request_id`, `revision`, `handoff.task`) |
+| `command.ack` / `command.error` | outcome of your command |
+| `call.max_duration_warning`, `call.ended` | time is nearly up / the bot left; stop watching |
 
 ## Behaviour
 
