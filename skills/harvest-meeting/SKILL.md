@@ -16,8 +16,16 @@ bridge writes meeting events to a file and reads your commands from a file.
 ## Key
 
 Check `HARVEST_API_KEY`, then `~/.harvest/config.json` (`{"api_key": "hvst_live_..."}`).
-If neither exists, ask the user for their Harvest key once and save it to that file
-(mode 600). Never print the key, never put it in a URL, chat or commit.
+If neither exists, get one by email code (no browser needed):
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/harvest-register.mjs" send --email you@example.com
+# ask the user for the 6-digit code from that email, then:
+node "${CLAUDE_PLUGIN_ROOT}/scripts/harvest-register.mjs" verify --email you@example.com --code 123456
+```
+
+The key is saved to `~/.harvest/config.json` (mode 600). Never print the key, never put it in a
+URL, chat or commit. A key from the dashboard (tryharvest.ai → Developers → Quick Install) works too.
 
 ## Join (event-driven, zero tokens while idle)
 
