@@ -38,7 +38,15 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/harvest-bridge.mjs" "<meet-url>"   --name "S
 Options: `--name`, `--voice` (alloy ash ballad coral echo fable nova onyx sage shimmer verse marin cedar;
 hear them at https://gateway.tryharvest.ai/v1/voices), `--voice-strategy direct|realtime`, `--context`,
 `--trigger-words a,b`, `--language en|ru|…`, `--webpage-url URL` (page as the bot camera),
+`--screenshare-url URL`, `--join-as guest|account` (guest shows `--name` on the Meet tile;
+default is the signed-in account), `--webhook-url URL` (events for this bot only; the signing
+secret is written once to `<commands>.webhook-secret` — do not print it),
 `--max-duration MIN`, `--alone-timeout SEC`, `--vad-timeout SEC` (default 1.25).
+
+Realtime voices are only `marin`, `meridian`, `stone`, `gleam`. Other voices are for `direct`.
+A realtime session stops after 8 minutes. Guest join can be refused by the host; do not retry
+past that. A technical refusal may fall back to the signed-in account, which then shows the
+account name, not `--name`.
 
 Then watch events with your streaming primitive (Claude Code: Monitor, persistent):
 

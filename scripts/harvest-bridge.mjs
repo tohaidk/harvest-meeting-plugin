@@ -93,6 +93,14 @@ const language = flag('language'); if (language) body.language = language;
 const context = flag('context'); if (context) body.context = context;
 const triggers = flag('trigger-words'); if (triggers) body.trigger_words = triggers;
 if (flag('voice-strategy') === 'realtime') body.mode = 'realtime';
+const joinAs = flag('join-as');
+if (joinAs === 'guest' || joinAs === 'account') body.join_as = joinAs;
+const webhook = flag('webhook-url');
+if (webhook) body.webhook_url = webhook;
+const page = flag('webpage-url');
+if (page) body.webpage_url = page;
+const share = flag('screenshare-url');
+if (share) body.screenshare_url = share;
 const timeouts = {};
 if (flag('max-duration')) timeouts.max_duration_s = Math.round(Number(flag('max-duration')) * 60);
 if (flag('alone-timeout')) timeouts.everyone_left_s = Number(flag('alone-timeout'));
@@ -103,6 +111,11 @@ if (created.status >= 400 || created.json.status === 'failed' || created.json.st
   process.exit(1);
 }
 botId = created.json.bot_id;
+if (created.json.webhook_secret) {
+  const secretFile = `${commandsFile}.webhook-secret`;
+  writeFileSync(secretFile, `${created.json.webhook_secret}\n`);
+  emit({ event: 'webhook.ready', path: secretFile, subscription_id: created.json.webhook_subscription_id });
+}
 emit({ event: 'call.created', bot_id: botId, operation_id: created.json.operation_id, state: created.json.state });
 
 // 2. Follow the join until it is active or terminal.
