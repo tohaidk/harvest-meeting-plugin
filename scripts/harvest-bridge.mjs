@@ -150,7 +150,10 @@ let mergeTimer;
 let greeted = false;
 const flushUserMessage = () => {
   if (!pending.length) return;
-  emit({ event: 'user.message', speaker: pending[0].speaker, text: pending.map((p) => p.text).join(' ') });
+  // The rule rides in the envelope (Vadym's idea, 2026-11-17): an LLM client reads files and thinks
+  // before it answers, and the person hears silence. A short spoken ack first, then the work.
+  emit({ event: 'user.message', speaker: pending[0].speaker, text: pending.map((p) => p.text).join(' '),
+    hint: 'If this is for you: first speak a 1-3 word acknowledgment in their language, then work on the answer.' });
   pending = [];
 };
 ws = new WebSocket(`${api.replace(/^http/, 'ws')}/sessions/${botId}/stream?partials=false`, ['harvest.v1', `harvest.bearer.${key}`]);
