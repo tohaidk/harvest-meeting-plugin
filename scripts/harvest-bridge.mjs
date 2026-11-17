@@ -30,6 +30,13 @@ import { createInterface } from 'node:readline';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 
+// Fail before joining: without a global WebSocket the bot would join and then no event would ever
+// arrive (live 2026-11-17 on Node 18: the caller heard nothing for two minutes).
+if (typeof WebSocket !== 'function' || typeof fetch !== 'function') {
+  console.error(`harvest-bridge needs Node 22+ (global WebSocket and fetch); this is Node ${process.versions.node}.`);
+  process.exit(2);
+}
+
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
   const i = args.indexOf(`--${name}`);

@@ -29,6 +29,8 @@ URL, chat or commit. A key from the dashboard (tryharvest.ai → Developers → 
 
 ## Join (event-driven, zero tokens while idle)
 
+Needs Node 22+ (the bridge uses the global WebSocket); on older Node it exits before joining.
+
 ```bash
 EVENTS="$PWD/meeting-events.jsonl"; COMMANDS="$PWD/meeting-commands.jsonl"
 : > "$EVENTS"; : > "$COMMANDS"
