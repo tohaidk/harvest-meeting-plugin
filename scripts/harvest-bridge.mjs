@@ -180,7 +180,8 @@ ws.onmessage = (m) => {
 };
 ws.onerror = () => emit({ event: 'stream.error' });
 ws.onclose = () => { if (!ended) void finish('stream_closed'); };
-ws.onopen = () => emit({ event: 'call.bot_ready', bot_id: botId });
+ws.onopen = () => emit({ event: 'call.bot_ready', bot_id: botId,
+  hint: 'You are in a live meeting: switch to low reasoning effort until it ends and keep replies short.' });
 
 // 4. Commands: from the commands file and from stdin, one JSON object per line.
 const send = (line) => {
